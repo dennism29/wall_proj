@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodingDojo Wall</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
+</head>
+<body>
+    <nav class="navbar navbar-light bg-light">
+        <a class="navbar-brand">CodingDojo Wall</a>
+        <form class="form-inline" action="/wall/logout" type="POST">
+            {% csrf_token %}
+            <caption class="my-2">Welcome, {{ curr_user.first_name }}!</caption>
+            <button class="btn btn-danger my-2 mx-4" type="submit">Log Out</button>
+        </form>
+    </nav>
+    <div class="container">
+        <form action="/wall/post" method="POST" class="box">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="message" class="h5">Post a Message</label>
+                <textarea name="message" id="message" cols="50" rows="5" class="form-control" placeholder="Write a message here..."></textarea>
+                <button class="btn btn-primary my-2 float-right" type="submit">Post Message</button>
+            </div>
+        </form>   
+        {% for message in all_messages reversed %}
+        <div class="box">
+            <div class="message">
+                <h5><span>{{ message.user.first_name }} {{ message.user.last_name }}</span> &ndash; {{ message.created_at }}</h5>
+                <p>"{{ message.message }}"</p>
+                {% if message.user.id == request.session.user_id %}
+                <a href="/wall/delete/{{ message.id }}" class="float-right">Delete Message</a>
+                {% endif %}
+            </div>
+            <hr>
+            {% for comment in message.comments.all %}
+            <div class="comment-box comment">
+                <p><span>{{ comment.user.first_name }} {{ comment.user.last_name }}</span> &ndash; {{ comment.created_at }}</p>
+                <p>"{{ comment.comment }}"</p>
+            </div>
+            {% endfor %}
+            <form action="/wall/comment" method="POST">
+                {% csrf_token %}
+                <div class="form-group comment">
+                    <h6>Post a Comment</h6>
+                    <input type="text" name="message_id" value="{{ message.id }}" hidden>
+                    <textarea name="comment" id="comment" cols="50" rows="1" class="form-control" placeholder="Write a comment here..."></textarea>
+                    <button class="btn btn-primary my-2 float-right" type="submit">Post Comment</button>
+                </div>
+            </form>
+        </div>
+        {% endfor %}
+    </div> 
+</body>
+</html>
